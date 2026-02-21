@@ -1,3 +1,4 @@
 opencv-python
 streamlink
 ultralytics
+flask
