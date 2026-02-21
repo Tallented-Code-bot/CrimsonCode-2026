@@ -1,83 +1,80 @@
-# ...existing code...
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, flash
+from functools import wraps
+from dotenv import load_dotenv
 import os
-import json
 import secrets
 from datetime import datetime
 
-# Use the provided Templates folder (capitalized in your project)
+load_dotenv()
+
 app = Flask(__name__, template_folder="Templates")
-app.secret_key = os.environ.get("FLASK_SECRET") or secrets.token_hex(16)
+app.secret_key = os.environ.get("FLASK_SECRET") or secrets.token_hex(32)
 
-# BASIC USER MANAGEMENT USING A JSON FILE (FOR SIMPLICITY, NOT SECURE, NO HASHING)
-BASE_DIR = os.path.dirname(__file__)
-USERS_FILE = os.path.join(BASE_DIR, "users.json")
-
-# LOAD USERS FROM A USER FILE (FOR SIMPLICITY, NOT SECURE, NO HASHING)
-def load_users():
-    try:
-        with open(USERS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {}
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 
 
-# SAVE USERS TO A USER FILE (FOR SIMPLICITY, NOT SECURE, NO HASHING)
-def save_users(users):
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(users, f, indent=2)
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("user"):
+            return redirect(url_for("login_page"))
+        return f(*args, **kwargs)
+    return decorated
 
-# NOTIFICATION SAMPLE FUNCTION
-def sample_notifications(username):
-    # Minimal, deterministic sample notifications related to README (faces/brands)
-    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+
+def sample_notifications():
+    now = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
     return [
-        {"time": now, "type": "face", "detail": "Known face detected: Jamieson"},
-        {"time": now, "type": "brand", "detail": "Package from AcmeCorp detected (front porch)"},
-        {"time": now, "type": "unknown", "detail": "Unknown person at the door"},
+        {"time": now, "icon": "person-fill-check",        "color": "success", "detail": "Known face detected: Jamieson"},
+        {"time": now, "icon": "box-seam",                 "color": "info",    "detail": "Package from AcmeCorp detected (front porch)"},
+        {"time": now, "icon": "person-fill-exclamation",  "color": "warning", "detail": "Unknown person at the door"},
     ]
 
-# HOME PAGE ROUTE
-@app.route('/')
-def home():
-    user = session.get("user")
-    notifications = sample_notifications(user) if user else []
-    return render_template("index.html", user=user, notifications=notifications)
 
-# SIGNUP ROUTE
-@app.route('/signup', methods=['POST'])
-def signup():
-    username = request.form.get('username', '').strip()
-    password = request.form.get('password', '')
-    if not username or not password:
-        return redirect(url_for('home'))
-    users = load_users()
-    if username in users:
-        return redirect(url_for('home'))
-    users[username] = {"password": password}
-    save_users(users)
-    session['user'] = username
-    return redirect(url_for('home'))
+# ── Auth routes ────────────────────────────────────────────────────────────────
+
+@app.route("/login", methods=["GET"])
+def login_page():
+    if session.get("user"):
+        return redirect(url_for("home"))
+    return render_template("login.html")
 
 
-# LOGIN ROUTE
-@app.route('/login', methods=['POST'])
+@app.route("/login", methods=["POST"])
 def login():
-    username = request.form.get('username', '').strip()
-    password = request.form.get('password', '')
-    users = load_users()
-    if username and username in users and users[username].get('password') == password:
-        session['user'] = username
-        return redirect(url_for('home'))
-    return redirect(url_for('home'))
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
+    username_ok = secrets.compare_digest(username, ADMIN_USERNAME)
+    password_ok = secrets.compare_digest(password, ADMIN_PASSWORD)
+    if username_ok and password_ok:
+        session["user"] = username
+        return redirect(url_for("home"))
+    flash("Invalid username or password.", "danger")
+    return redirect(url_for("login_page"))
 
-# LOGOUT ROUTE
-@app.route('/logout')
+
+@app.route("/logout")
 def logout():
-    session.pop('user', None)
-    return redirect(url_for('home'))
+    session.clear()
+    return redirect(url_for("login_page"))
 
 
-# MAIN CODE HERE
-if __name__ == '__main__':
+# ── Protected routes ───────────────────────────────────────────────────────────
+
+@app.route("/")
+@login_required
+def home():
+    return render_template("index.html", user=session["user"], notifications=sample_notifications())
+
+
+@app.route("/about")
+@login_required
+def about():
+    return render_template("about.html", user=session["user"])
+
+
+# ── Run ────────────────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
     app.run(debug=True)
