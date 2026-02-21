@@ -13,6 +13,7 @@ Reinventing the Wheel
 We are reinventing the Ring doorbell camera to recognize faces/identites and brands and sends a notification to an application. These notifications allow us to give users more context in who is at the door.
 
 # Materials used:
-- Raspberry Pi 4
+- Raspberry Pi Zero 2W
+- Raspberry Pi Cam 3 Wide NoIR Module 
 
 
