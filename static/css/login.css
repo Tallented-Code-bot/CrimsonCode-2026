@@ -1,0 +1,20 @@
+body {
+    background-color: #A60f2d;
+    font-family: 'Arial', sans-serif;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    height:90vh;
+    display: flex;
+}
+
+#wrapper {
+    background-color: #fff;
+    color: #333;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    position:relative;
+}
+
