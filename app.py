@@ -37,12 +37,27 @@ def sample_notifications(username):
         {"time": now, "type": "unknown", "detail": "Unknown person at the door"},
     ]
 
-# HOME PAGE ROUTE
+# Root location
 @app.route('/')
+def root():
+    return redirect(url_for('login_page'))
+
+# LOGIN PAGE ROUTE
+@app.route('/login-page')
+def login_page():
+    return render_template("login.html")
+
+# HOME PAGE ROUTE
+@app.route('/home')
 def home():
     user = session.get("user")
     notifications = sample_notifications(user) if user else []
     return render_template("index.html", user=user, notifications=notifications)
+
+@app.route('/about')
+def about():
+    return render_template("about.html")
+
 
 # SIGNUP ROUTE
 @app.route('/signup', methods=['POST'])
