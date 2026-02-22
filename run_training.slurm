@@ -21,6 +21,8 @@ echo "========================================="
 # Navigate to the project directory
 cd "$SLURM_SUBMIT_DIR" || { echo "Failed to cd to $SLURM_SUBMIT_DIR"; exit 1; }
 
+module load python3/3.9.5
+
 echo "Working directory: $(pwd)"
 echo "Python version: $(python3 --version)"
 echo ""
