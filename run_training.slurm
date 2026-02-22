@@ -21,20 +21,31 @@ echo "========================================="
 # Navigate to the project directory
 cd "$SLURM_SUBMIT_DIR" || { echo "Failed to cd to $SLURM_SUBMIT_DIR"; exit 1; }
 
-module load python3/3.9.5
+# Load Python 3.13 module
+echo "Loading Python 3.13..."
+
+module load python3/3.13.1
 
 echo "Working directory: $(pwd)"
 echo "Python version: $(python3 --version)"
 echo ""
 
-# Create a Python virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv venv
+# Remove old venv if it exists (to ensure we use the new Python version)
+if [ -d "venv" ]; then
+    echo "Removing old virtual environment..."
+    rm -rf venv
 fi
+
+# Create a Python 3.12 virtual environment
+echo "Creating Python 3.12 virtual environment..."
+python3 -m venv venv
 
 # Activate the virtual environment
 source venv/bin/activate
+
+# Verify Python version in venv
+echo "Virtual environment Python version: $(python --version)"
+echo ""
 
 # Install/upgrade dependencies
 echo "Installing dependencies..."
@@ -46,7 +57,7 @@ echo "========================================="
 echo "Starting face encoding training..."
 echo "========================================="
 
-python3 detector.py
+python detector.py
 
 echo "========================================="
 echo "Training completed successfully!"
