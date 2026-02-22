@@ -5,3 +5,5 @@ env
 .vscode
 __pycache__
 images/
+data/
+*.db
