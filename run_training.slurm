@@ -54,6 +54,7 @@ echo "Loading Python ..."
 # pip install -r requirements.txt
 
 
+module load anaconda3/22.10.0
 conda activate fr-env
 
 # Run the detector training
