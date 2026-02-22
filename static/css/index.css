@@ -102,3 +102,23 @@ body {
     background-position: center;
     background-repeat: no-repeat;
 }
+
+/* Modal styles for video evidence */
+.video-evidence-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.video-evidence-content {
+    background: #1a1a2e;
+    padding: 1rem;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
