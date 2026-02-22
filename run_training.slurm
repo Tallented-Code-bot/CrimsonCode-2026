@@ -54,14 +54,29 @@ echo "Loading Python ..."
 # pip install -r requirements.txt
 
 
+# Load NVIDIA CUDA modules (uncomment and adjust based on your HPC cluster)
+# Check available modules with: module avail cuda
+# Typical examples:
+# module load nvidia/cuda/12.1
+# module load nvidia/cudnn/8.9
+
 module load anaconda3/22.10.0
 source ~/.bashrc
 conda activate fr-env
 
+# Verify GPU and CUDA support before training
+echo "========================================="
+echo "Verifying GPU and CUDA support..."
+echo "========================================="
+python -c "import dlib; print(f'dlib CUDA Support: {dlib.DLIB_USE_CUDA}')"
+nvidia-smi --query-gpu=name --format=csv,noheader || echo "Note: nvidia-smi not available"
+echo ""
+
 # Run the detector training
 echo "========================================="
-echo "Starting face encoding training..."
+echo "Starting face encoding training with GPU..."
 echo "========================================="
+echo "Using CNN model for GPU acceleration..."
 
 python detector.py --encode --model cnn
 
