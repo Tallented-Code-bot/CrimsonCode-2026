@@ -1,19 +1,16 @@
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from functools import wraps
 from dotenv import load_dotenv
+from werkzeug.security import check_password_hash
+from services.db import get_admin, get_recent_events
 import os
 import secrets
-from datetime import datetime
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize Flask app
-app = Flask(__name__, template_folder="Templates")
+app = Flask(__name__, template_folder="templates")
 app.secret_key = os.environ.get("FLASK_SECRET") or secrets.token_hex(32)
-
-ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 
 # Decorator to require login for protected routes
 def login_required(f):
@@ -24,14 +21,21 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
-# Sample notifications for demonstration purposes
-def sample_notifications():
-    now = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
-    return [
-        {"time": now, "icon": "person-fill-check",        "color": "success", "detail": "Known face detected: Jamieson"},
-        {"time": now, "icon": "box-seam",                 "color": "info",    "detail": "Package from AcmeCorp detected (front porch)"},
-        {"time": now, "icon": "person-fill-exclamation",  "color": "warning", "detail": "Unknown person at the door"},
-    ]
+
+def events_as_notifications():
+    """Convert DB event rows into the dict format the template expects."""
+    rows = get_recent_events(limit=20)
+    notifications = []
+    for row in rows:
+        known = row["person_name"] != "Unknown"
+        notifications.append({
+            "time":   row["timestamp"],
+            "icon":   "person-fill-check" if known else "person-fill-exclamation",
+            "color":  "success"           if known else "warning",
+            "detail": f"Known face detected: {row['person_name']}" if known
+                      else "Unknown person detected",
+        })
+    return notifications
 
 
 # ── Auth routes ────────────────────────────────────────────────────────────────
@@ -48,13 +52,8 @@ def login_page():
 def login():
     username = request.form.get("username", "").strip() # Strip whitespace from username input
     password = request.form.get("password", "")
-
-    # Basic login validation for demonstration purposes (use a proper authentication system in production)
-    username_ok = secrets.compare_digest(username, ADMIN_USERNAME)
-    password_ok = secrets.compare_digest(password, ADMIN_PASSWORD)
-
-    # if both username and password are correct, set the session and redirect to home
-    if username_ok and password_ok:
+    admin = get_admin(username)
+    if admin and check_password_hash(admin["password_hash"], password):
         session["user"] = username
         return redirect(url_for("home"))
     
@@ -75,7 +74,7 @@ def logout():
 @app.route("/")
 @login_required
 def home():
-    return render_template("index.html", user=session["user"], notifications=sample_notifications())
+    return render_template("index.html", user=session["user"], notifications=events_as_notifications())
 
 # About page route, also protected by login_required decorator
 @app.route("/about")
