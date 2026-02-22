@@ -13,10 +13,10 @@
 #SBATCH --mail-user=calvin.tallent@wsu.edu
 
 # Load necessary modules on Kamiak
-module load gcc/11.2.0
-module load cuda/11.8
-module load cudnn/8.6.0
-module load python/3.10
+module load gcc/14.2
+module load cuda/11.8.0
+module load cudnn/7.1.2_cuda9.1
+module load python3/3.11.4
 
 # Create logs directory if it doesn't exist
 mkdir -p logs
