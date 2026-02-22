@@ -21,7 +21,7 @@ KNOWN_PERSONS = [
 
 def seed(admin_username: str = None, admin_password: str = None):
     admin_username = admin_username or os.getenv("ADMIN_USERNAME", "admin")
-    admin_password = admin_password or os.getenv("ADMIN_PASSWORD", "changeme")
+    admin_password = admin_password or os.getenv("ADMIN_PASSWORD", "password")
     init_db()
 
     with get_db() as db:
