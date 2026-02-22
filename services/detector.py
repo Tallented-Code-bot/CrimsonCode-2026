@@ -15,11 +15,11 @@ from .db import insert_event
 
 _MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "best.pt")
 _FRAME_SKIP = 10  # process every Nth frame to keep CPU reasonable
-#_AVG_CONF = 0 # we will take avg over 30 frames. 3 takes / 3
 
 def _run(stream_url: str):
     model = YOLO(_MODEL_PATH)
     prev_count = None
+    avg_conf = 0
 
     while True:
         try:
