@@ -1,0 +1,35 @@
+body { background: #0f0f1a; color: #e0e0e0; }
+.navbar {
+    background: #16213e !important;
+    border-bottom: 1px solid rgba(233,69,96,0.4);
+}
+.navbar-brand { 
+    color: #e94560 !important; /* */
+    font-weight: 700; 
+}
+
+.nav-link, .navbar-text { 
+    color: rgba(255,255,255,0.75) !important; 
+}
+
+.nav-link:hover {
+    color: #fff !important; 
+}
+
+.btn-logout { 
+    border: 1px solid #e94560; color: #e94560; font-size: 0.85rem; 
+}
+
+.btn-logout:hover { 
+    background: #e94560; color: #fff; 
+}
+
+.text-muted { 
+    color: rgba(255, 255, 255, 0.6) !important; 
+}
+
+.about-card {
+    background: #1a1a2e;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0.75rem;
+}
