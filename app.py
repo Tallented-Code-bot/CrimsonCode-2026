@@ -1,17 +1,29 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify
-from functools import wraps
-from dotenv import load_dotenv
-from werkzeug.security import check_password_hash
-from services.db import get_admin, get_recent_events, get_events_since
-from services.detector import start as start_detector
 import os
 import secrets
+from functools import wraps
+
+from dotenv import load_dotenv
+from flask import (
+    Flask,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from werkzeug.security import check_password_hash
+
+from services.db import get_admin, get_events_since, get_recent_events
+from services.detector import start as start_detector
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.environ.get("FLASK_SECRET") or secrets.token_hex(32)
+
 
 # Decorator to require login for protected routes
 def login_required(f):
@@ -20,6 +32,7 @@ def login_required(f):
         if not session.get("user"):
             return redirect(url_for("login_page"))
         return f(*args, **kwargs)
+
     return decorated
 
 
@@ -32,10 +45,10 @@ def _row_to_notification(row):
     else:
         icon, color = "person-fill-exclamation", "secondary"
     return {
-        "id":     row["id"],
-        "time":   row["timestamp"],
-        "icon":   icon,
-        "color":  color,
+        "id": row["id"],
+        "time": row["timestamp"],
+        "icon": icon,
+        "color": color,
         "detail": row["person_name"],
     }
 
@@ -47,6 +60,7 @@ def events_as_notifications():
 
 # ── Auth routes ────────────────────────────────────────────────────────────────
 
+
 # Login page route to display the login form
 @app.route("/login", methods=["GET"])
 def login_page():
@@ -54,19 +68,23 @@ def login_page():
         return redirect(url_for("home"))
     return render_template("login.html")
 
+
 # Login route to handle POST requests from the login form
 @app.route("/login", methods=["POST"])
 def login():
-    username = request.form.get("username", "").strip() # Strip whitespace from username input
+    username = request.form.get(
+        "username", ""
+    ).strip()  # Strip whitespace from username input
     password = request.form.get("password", "")
     admin = get_admin(username)
     if admin and check_password_hash(admin["password_hash"], password):
         session["user"] = username
         return redirect(url_for("home"))
-    
+
     # if either is incorrect, flash an error message and redirect back to the login page
     flash("Invalid username or password.", "danger")
     return redirect(url_for("login_page"))
+
 
 # Logout route to clear the session and redirect to login page
 @app.route("/logout")
@@ -77,11 +95,15 @@ def logout():
 
 # ── Protected routes ───────────────────────────────────────────────────────────
 
+
 # Home page route, protected by login_required decorator
 @app.route("/")
 @login_required
 def home():
-    return render_template("index.html", user=session["user"], notifications=events_as_notifications())
+    return render_template(
+        "index.html", user=session["user"], notifications=events_as_notifications()
+    )
+
 
 # About page route, also protected by login_required decorator
 @app.route("/about")
@@ -91,6 +113,7 @@ def about():
 
 
 # ── API ────────────────────────────────────────────────────────────────────────
+
 
 @app.route("/api/events")
 def api_events():
@@ -103,7 +126,7 @@ def api_events():
 
 # ── Start detector (runs regardless of how Flask is launched) ──────────────────
 
-_stream_url = os.getenv("STREAM_URL", "https://youtube.com/live/Jv5bq8kRG8c")
+_stream_url = os.getenv("STREAM_URL", "https://www.youtube.com/watch?v=UUhTr19MH0k")
 start_detector(_stream_url)
 
 

@@ -3,18 +3,24 @@ Background thread: reads the live stream, runs best.pt on every Nth frame,
 tracks how many people are in view, and writes an event to the DB whenever
 that count changes.
 """
+
 import os
-import time
+import pickle
 import threading
+import time
 
 import cv2
+import face_recognition
 import streamlink
 from ultralytics import YOLO
+
+DEFAULT_ENCODINGS_PATH = Path("output/encodings.pkl")
 
 from .db import insert_event
 
 _MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "best.pt")
 _FRAME_SKIP = 10  # process every Nth frame to keep CPU reasonable
+
 
 def _run(stream_url: str):
     model = YOLO(_MODEL_PATH)
@@ -42,12 +48,8 @@ def _run(stream_url: str):
                     continue
 
                 results = model.predict(frame, verbose=False)
-                count = sum(
-                    1 for box in results[0].boxes
-                    if float(box.conf[0]) >= 0.80
-                )
-                
-                
+                count = sum(1 for box in results[0].boxes if float(box.conf[0]) >= 0.80)
+
                 if prev_count is not None and count != prev_count:
                     diff = count - prev_count
                     if diff > 0:
@@ -78,6 +80,23 @@ def _run(stream_url: str):
         except Exception as e:
             print(f"[detector] error: {e} — retrying in 10s")
             time.sleep(10)
+
+
+def _detect_faces(frame, model: str, frame_scale: float):
+    resized = cv2.resize(frame, (0, 0), fx=frame_scale, fy=frame_scale)
+    rgb_small = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+    locations = face_recognition.face_locations(rgb_small, model=model)
+    encodings = face_recognition.face_encodings(rgb_small, locations)
+    return locations, encodings
+
+
+def load_known_faces(encodings_location: Path = DEFAULT_ENCODINGS_PATH) -> dict:
+    if not encodings_location.exists():
+        raise FileNotFoundError(
+            f"Encodings not found at {encodings_location}. Run --encode first."
+        )
+    with encodings_location.open(mode="rb") as f:
+        return pickle.load(f)
 
 
 def start(stream_url: str):

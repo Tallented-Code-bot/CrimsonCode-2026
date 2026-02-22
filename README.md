@@ -16,4 +16,27 @@ We are reinventing the Ring doorbell camera to recognize faces/identites and bra
 - Raspberry Pi Zero 2W
 - Raspberry Pi Cam 3 Wide NoIR Module 
 
+# Live face recognition
+
+## Encode known faces
+Place labeled face images under `training/<name>/` then run:
+
+```bash
+python detector.py --encode
+```
+
+## Run the camera app
+
+```bash
+python detector.py --camera 0 --model hog --scale 0.25 --tolerance 0.6
+```
+
+Quit with `q` or `Esc`.
+
+## Smoke test (single image)
+
+```bash
+python scripts/smoke_recognize.py
+```
+
 

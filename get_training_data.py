@@ -10,7 +10,11 @@ frame_num = 0
 
 cap = cv2.VideoCapture(0)
 
-path = "training"
+
+name = input("Enter your name please...")
+
+
+path = f"training/{name}"
 
 while True:
     ret, frame = cap.read()
@@ -59,12 +63,13 @@ while True:
             raise RuntimeError("Failed to save image")
         frame_num += 1
 
-        if frame_num >= 50:
-            if path == "verification":
-                break
+        if frame_num >= 200:
+            break
+            # if path == "verification":
+            #     break
 
-            path = "verification"
-            frame_num = 0
+            # path = "verification"
+            # frame_num = 0
 
     cv2.imshow("Live", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):

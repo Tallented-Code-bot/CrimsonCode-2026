@@ -55,6 +55,7 @@ echo "Loading Python ..."
 
 
 module load anaconda3/22.10.0
+source ~/.bashrc
 conda activate fr-env
 
 # Run the detector training
