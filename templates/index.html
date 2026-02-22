@@ -124,12 +124,9 @@ q                                            </iframe>
 <script>
 
     // When a notification is clicked, open the modal and set the video source to the evidence URL
-    function openEvidenceModal(url) {
+    function openEvidenceModal() {
         // open the modal
         document.getElementById("video-evidence-modal").style.display = "block";
-
-        // set the iframe src to the provided URL
-        document.getElementById("YoutubeStream").src = url;
     }
 
     // When the user clicks anywhere outside of the modal, close it and stop the video
@@ -145,7 +142,7 @@ q                                            </iframe>
     }
 
     // Track the highest event id we've seen so we only fetch new ones
-    let lastId = {{ (notifications[0].id if notifications else 0) }};
+    let lastId = {{ (notifications[0].id if notifications else 0) }}; // Some flask things that my computer is tripping over 
     
     // Polling script to fetch new events every 5 seconds
     function buildItem(n) {
