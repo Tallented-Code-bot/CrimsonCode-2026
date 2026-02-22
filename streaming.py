@@ -4,7 +4,7 @@ import cv2
 import streamlink
 from ultralytics import YOLO
 
-url = "https://youtube.com/live/BQ1Cz-mFjeg"  # live stream[web:12]
+url = "https://www.youtube.com/live/oJBrDcMnGx4"  # live stream[web:12]
 streams = streamlink.streams(
     url, options={"hls-live-edge": 1, "hls-segment-threads": 1}
 )
@@ -61,8 +61,8 @@ while True:
         success = cv2.imwrite(f"images/frame_{frame_num}.jpg", frame)
         print(f"Writing frame {frame_num}")
         if not success:
-            raise RuntimeError("Failed to save image")
-        frame_num += 1
+            #raise RuntimeError("Failed to save image")
+            frame_num += 1
 
     cv2.imshow("Live", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
