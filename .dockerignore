@@ -1,0 +1,16 @@
+.git/
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sif
+.venv/
+.env
+.mypy_cache/
+.pytest_cache/
+images/
+training/
+verification/
+singularity-build-tmp/
+singularity-build-var/
