@@ -49,10 +49,20 @@ def get_recent_events(limit: int = 20):
         ).fetchall()
 
 
-def insert_event(person_name: str, confidence: float = None, image_path: str = None):
+def insert_event(person_name: str = "Unknown", confidence: float = None,
+                 image_path: str = None, person_count: int = None, event_type: str = None):
     """Insert a new detection event. Called by the camera/ML pipeline."""
     with get_db() as db:
         db.execute(
-            "INSERT INTO events (person_name, confidence, image_path) VALUES (?, ?, ?)",
-            (person_name, confidence, image_path),
+            "INSERT INTO events (person_name, confidence, image_path, person_count, event_type)"
+            " VALUES (?, ?, ?, ?, ?)",
+            (person_name, confidence, image_path, person_count, event_type),
         )
+
+
+def get_events_since(since_id: int):
+    """Return all events with id > since_id, oldest first."""
+    with get_db() as db:
+        return db.execute(
+            "SELECT * FROM events WHERE id > ? ORDER BY id ASC", (since_id,)
+        ).fetchall()

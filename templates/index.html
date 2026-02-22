@@ -97,5 +97,59 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Track the highest event id we've seen so we only fetch new ones
+    let lastId = {{ (notifications[0].id if notifications else 0) }};
+
+    function buildItem(n) {
+        return `
+        <div class="notif-item p-3">
+            <div class="d-flex align-items-start gap-2">
+                <i class="bi bi-${n.icon} text-${n.color} mt-1 flex-shrink-0"></i>
+                <div>
+                    <div class="notif-detail text-white">${n.detail}</div>
+                    <div class="notif-time mt-1">
+                        <i class="bi bi-clock me-1"></i>${n.time}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    async function pollEvents() {
+        try {
+            const res = await fetch(`/api/events?since=${lastId}`);
+            if (!res.ok) return;
+            const events = await res.json();
+            if (events.length === 0) return;
+
+            const body = document.querySelector(".notif-card .card-body");
+            const badge = document.querySelector(".notif-card .badge");
+
+            // Remove "no alerts" placeholder if present
+            const placeholder = body.querySelector("p");
+            if (placeholder) placeholder.remove();
+
+            events.forEach(n => {
+                lastId = Math.max(lastId, n.id);
+                body.insertAdjacentHTML("afterbegin", buildItem(n));
+            });
+
+            // Update badge count
+            const count = body.querySelectorAll(".notif-item").length;
+            if (badge) {
+                badge.textContent = count;
+            } else {
+                const header = document.querySelector(".notif-card .card-header");
+                header.insertAdjacentHTML("beforeend",
+                    `<span class="badge bg-danger ms-auto">${count}</span>`);
+            }
+        } catch (e) {
+            console.error("poll error", e);
+        }
+    }
+
+    setInterval(pollEvents, 5000);
+</script>
 </body>
 </html>

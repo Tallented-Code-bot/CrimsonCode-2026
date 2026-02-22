@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify
 from functools import wraps
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash
-from services.db import get_admin, get_recent_events
+from services.db import get_admin, get_recent_events, get_events_since
+from services.detector import start as start_detector
 import os
 import secrets
 
@@ -22,20 +23,26 @@ def login_required(f):
     return decorated
 
 
+def _row_to_notification(row):
+    event_type = row["event_type"]
+    if event_type == "entered":
+        icon, color = "person-plus-fill", "success"
+    elif event_type == "left":
+        icon, color = "person-dash-fill", "warning"
+    else:
+        icon, color = "person-fill-exclamation", "secondary"
+    return {
+        "id":     row["id"],
+        "time":   row["timestamp"],
+        "icon":   icon,
+        "color":  color,
+        "detail": row["person_name"],
+    }
+
+
 def events_as_notifications():
     """Convert DB event rows into the dict format the template expects."""
-    rows = get_recent_events(limit=20)
-    notifications = []
-    for row in rows:
-        known = row["person_name"] != "Unknown"
-        notifications.append({
-            "time":   row["timestamp"],
-            "icon":   "person-fill-check" if known else "person-fill-exclamation",
-            "color":  "success"           if known else "warning",
-            "detail": f"Known face detected: {row['person_name']}" if known
-                      else "Unknown person detected",
-        })
-    return notifications
+    return [_row_to_notification(r) for r in get_recent_events(limit=20)]
 
 
 # ── Auth routes ────────────────────────────────────────────────────────────────
@@ -83,7 +90,24 @@ def about():
     return render_template("about.html", user=session["user"])
 
 
+# ── API ────────────────────────────────────────────────────────────────────────
+
+@app.route("/api/events")
+def api_events():
+    if not session.get("user"):
+        return jsonify([]), 401
+    since_id = request.args.get("since", 0, type=int)
+    rows = get_events_since(since_id)
+    return jsonify([_row_to_notification(r) for r in rows])
+
+
+# ── Start detector (runs regardless of how Flask is launched) ──────────────────
+
+_stream_url = os.getenv("STREAM_URL", "https://youtube.com/live/Jv5bq8kRG8c")
+start_detector(_stream_url)
+
+
 # ── Run ────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
