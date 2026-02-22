@@ -10,11 +10,11 @@ import threading
 import time
 
 import cv2
-import face_recognition
+#import face_recognition
 import streamlink
 from ultralytics import YOLO
 
-DEFAULT_ENCODINGS_PATH = Path("output/encodings.pkl")
+#DEFAULT_ENCODINGS_PATH = Path("output/encodings.pkl")
 
 from .db import insert_event
 
@@ -82,21 +82,21 @@ def _run(stream_url: str):
             time.sleep(10)
 
 
-def _detect_faces(frame, model: str, frame_scale: float):
-    resized = cv2.resize(frame, (0, 0), fx=frame_scale, fy=frame_scale)
-    rgb_small = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
-    locations = face_recognition.face_locations(rgb_small, model=model)
-    encodings = face_recognition.face_encodings(rgb_small, locations)
-    return locations, encodings
+#def _detect_faces(frame, model: str, frame_scale: float):
+ #   resized = cv2.resize(frame, (0, 0), fx=frame_scale, fy=frame_scale)
+  #  rgb_small = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+   # locations = face_recognition.face_locations(rgb_small, model=model)
+    #encodings = face_recognition.face_encodings(rgb_small, locations)
+    #return locations, encodings
 
 
-def load_known_faces(encodings_location: Path = DEFAULT_ENCODINGS_PATH) -> dict:
-    if not encodings_location.exists():
-        raise FileNotFoundError(
-            f"Encodings not found at {encodings_location}. Run --encode first."
-        )
-    with encodings_location.open(mode="rb") as f:
-        return pickle.load(f)
+#def load_known_faces(encodings_location: Path = DEFAULT_ENCODINGS_PATH) -> dict:
+#    if not encodings_location.exists():
+#        raise FileNotFoundError(
+#            f"Encodings not found at {encodings_location}. Run --encode first."
+#        )
+#    with encodings_location.open(mode="rb") as f:
+#        return pickle.load(f)
 
 
 def start(stream_url: str):
