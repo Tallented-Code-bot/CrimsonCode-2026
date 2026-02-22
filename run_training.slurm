@@ -1,33 +1,34 @@
 #!/bin/bash
 #SBATCH --job-name=crimsoncode-training
-#SBATCH --output=logs/training_%j.log
-#SBATCH --error=logs/training_%j.err
+#SBATCH --output=training_%j.log
+#SBATCH --error=training_%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
-#SBATCH --gres=gpu:1
-#SBATCH --time=04:00:00
-#SBATCH --partition=gpu
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=16G
+#SBATCH --time=02:00:00
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=calvin.tallent@wsu.edu
 
-# Load necessary modules on Kamiak
-module load gcc/14.2
-module load cuda/11.8.0
-module load cudnn/7.1.2_cuda9.1
-module load python3/3.11.4
+set -e  # Exit on error
 
-# Create logs directory if it doesn't exist
-mkdir -p logs
+echo "========================================="
+echo "CrimsonCode Training Job Started"
+echo "Job ID: $SLURM_JOB_ID"
+echo "Job Name: $SLURM_JOB_NAME"
+echo "========================================="
 
 # Navigate to the project directory
-cd "$SLURM_SUBMIT_DIR" || exit
+cd "$SLURM_SUBMIT_DIR" || { echo "Failed to cd to $SLURM_SUBMIT_DIR"; exit 1; }
+
+echo "Working directory: $(pwd)"
+echo "Python version: $(python3 --version)"
+echo ""
 
 # Create a Python virtual environment if it doesn't exist
 if [ ! -d "venv" ]; then
     echo "Creating virtual environment..."
-    python -m venv venv
+    python3 -m venv venv
 fi
 
 # Activate the virtual environment
@@ -39,15 +40,12 @@ pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 
 # Run the detector training
+echo "========================================="
 echo "Starting face encoding training..."
-echo "Job ID: $SLURM_JOB_ID"
-echo "Running on nodes: $SLURM_NODELIST"
-echo "GPUs allocated: $SLURM_GPUS"
-echo ""
+echo "========================================="
 
-python detector.py
+python3 detector.py
 
-# Deactivate virtual environment
-deactivate
-
+echo "========================================="
 echo "Training completed successfully!"
+echo "========================================="
