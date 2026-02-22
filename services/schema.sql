@@ -17,5 +17,5 @@ CREATE TABLE IF NOT EXISTS events (
     person_name TEXT    NOT NULL DEFAULT 'Unknown',
     confidence  REAL,   -- model confidence 0.0-1.0, NULL for unknowns
     image_path  TEXT,   -- optional snapshot path
-    timestamp   TEXT    NOT NULL DEFAULT (datetime('now'))
+    timestamp   TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
